@@ -50,18 +50,18 @@ const input = [
   },
 ];
 
-var nearPair = [];
-
 
 /**
  * 距離が近いペアをnearPairに格納
  *
  * @param {*} id 処理している店の種類の指定index
- * @param {*} arrNotCurrent 処理している店以外の配列
+ * @param {Array} arrNotCurrent 処理している店以外の配列
  */
-function extractionNearPair(id, arrNotCurrent) {
+function extractionNearPair(id, arrNotCurrent, arrNearPair = []) {
   // 末尾より後に行ったら終了
-  if (!input[id]) return;
+  if (!input[id]) {
+    return arrNearPair;
+  } 
 
   // 計算の左辺に使用する店の全店舗を回す
   for (var i = 0; i < input[id].data.length; i++) {
@@ -78,7 +78,7 @@ function extractionNearPair(id, arrNotCurrent) {
         const distance = origin.vicinity + target.vicinity;
 
         const isFar = distance > 500;
-        const isDuplicates = nearPair.some(isDuplicatesCheck.bind(pairName));
+        const isDuplicates = arrNearPair.some(isDuplicatesCheck.bind(pairName));
 
         // 近くないペアは追加しない
         if(isFar || isDuplicates) continue;
@@ -89,15 +89,14 @@ function extractionNearPair(id, arrNotCurrent) {
           centerPlace: '新宿駅', //ここは別で求める
           distance: distance,
         };
-
-        nearPair.push(pair);
+        arrNearPair.push(pair);
       }
     }
   }
   
   // 次のidへ行き、処理したidのもの以外の配列を引数にして再帰
   const nextNotCurrentArr = input.filter(isNotCurrentIndex.bind(++id));
-  extractionNearPair(id, nextNotCurrentArr);
+  return extractionNearPair(id, nextNotCurrentArr, arrNearPair);
 }
 
 // 自分以外の配列を返す idはbindして渡す
@@ -114,7 +113,5 @@ function isDuplicatesCheck(pair) {
 }
 
 var id = 0;
-extractionNearPair(id ,input.filter(isNotCurrentIndex.bind(id)));
+const nearPair = extractionNearPair(id, input.filter(isNotCurrentIndex.bind(id)));
 console.table(nearPair);
-
-
